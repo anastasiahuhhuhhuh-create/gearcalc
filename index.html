@@ -1,10 +1,11 @@
 
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="uk">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GearCalc — Калькулятор 3D-шестерён</title>
+
+<title>GearCalc — Калькулятор 3D-шестерень</title>
 
 <style>
 * {
@@ -203,17 +204,17 @@ footer {
 
 <header>
     <div class="logo">⚙ GearCalc</div>
-    <p>Калькулятор параметров шестерён для 3D-печати</p>
+    <p>Калькулятор параметрів шестерень для 3D-друку</p>
 </header>
 
 <div class="calculator">
 
-<h2>Параметры шестерни</h2>
+<h2>Параметри шестерні</h2>
 
 <div class="inputs">
 
     <div class="field">
-        <label for="module">Модуль зубьев (мм)</label>
+        <label for="module">Модуль зубців (мм)</label>
         <input
             type="number"
             id="module"
@@ -222,11 +223,11 @@ footer {
             step="0.1"
             value="2"
         >
-        <div class="hint">Например: 1, 1.5, 2 или 3</div>
+        <div class="hint">Наприклад: 1, 1.5, 2 або 3</div>
     </div>
 
     <div class="field">
-        <label for="teeth">Количество зубьев</label>
+        <label for="teeth">Кількість зубців</label>
         <input
             type="number"
             id="teeth"
@@ -235,41 +236,41 @@ footer {
             step="1"
             value="30"
         >
-        <div class="hint">Целое число зубьев</div>
+        <div class="hint">Ціле число від 6 до 300</div>
     </div>
 
 </div>
 
-<button onclick="calculate()">Рассчитать параметры</button>
+<button id="calculateButton">Розрахувати параметри</button>
 
-<div class="error" id="error"></div>
+<div class="error" id="error" role="alert"></div>
 
 <div class="results" id="results">
 
-    <h2>Результаты расчёта</h2>
+    <h2>Результати розрахунку</h2>
 
     <div class="result-grid">
 
         <div class="result-card">
-            <span>Делительный диаметр</span>
+            <span>Ділильний діаметр</span>
             <strong id="pitch"></strong>
             <small>мм</small>
         </div>
 
         <div class="result-card">
-            <span>Наружный диаметр</span>
+            <span>Зовнішній діаметр</span>
             <strong id="outside"></strong>
             <small>мм</small>
         </div>
 
         <div class="result-card">
-            <span>Диаметр впадин</span>
+            <span>Діаметр западин</span>
             <strong id="root"></strong>
             <small>мм</small>
         </div>
 
         <div class="result-card">
-            <span>Высота зуба</span>
+            <span>Висота зубця</span>
             <strong id="height"></strong>
             <small>мм</small>
         </div>
@@ -277,7 +278,7 @@ footer {
     </div>
 
     <div class="advice">
-        <h3>💡 Рекомендация</h3>
+        <h3>💡 Рекомендація</h3>
         <p id="recommendation"></p>
     </div>
 
@@ -285,21 +286,36 @@ footer {
 </div>
 
 <footer>
-    GearCalc © 2026 | Инструмент для проектирования 3D-шестерён
+    GearCalc © 2026 | Інструмент для проєктування 3D-шестерень
 </footer>
 
 </div>
 
 <script>
+
+// Заборона від'ємних значень
+const moduleInput = document.getElementById("module");
+const teethInput = document.getElementById("teeth");
+
+[moduleInput, teethInput].forEach(input => {
+
+    input.addEventListener("input", function() {
+
+        if (this.value !== "" && Number(this.value) < 0) {
+            this.value = "";
+        }
+
+        document.getElementById("results").style.display = "none";
+        document.getElementById("error").textContent = "";
+    });
+
+});
+
+// Розрахунок параметрів
 function calculate() {
 
-    const module = Number(
-        document.getElementById("module").value
-    );
-
-    const teeth = Number(
-        document.getElementById("teeth").value
-    );
+    const module = Number(moduleInput.value);
+    const teeth = Number(teethInput.value);
 
     const error = document.getElementById("error");
     const results = document.getElementById("results");
@@ -307,25 +323,38 @@ function calculate() {
     error.textContent = "";
     results.style.display = "none";
 
+    // Перевірка модуля
     if (
+        moduleInput.value === "" ||
         !Number.isFinite(module) ||
-        !Number.isFinite(teeth) ||
         module <= 0 ||
-        teeth < 6 ||
-        !Number.isInteger(teeth)
+        module > 20
     ) {
         error.textContent =
-            "Введите модуль больше 0 и целое количество зубьев от 6.";
+            "Помилка: введіть модуль більше 0 та не більше 20 мм.";
         return;
     }
 
-    // Основные параметры стандартной прямозубой шестерни
+    // Перевірка кількості зубців
+    if (
+        teethInput.value === "" ||
+        !Number.isFinite(teeth) ||
+        !Number.isInteger(teeth) ||
+        teeth < 6 ||
+        teeth > 300
+    ) {
+        error.textContent =
+            "Помилка: кількість зубців має бути цілим числом від 6 до 300.";
+        return;
+    }
+
+    // Основні формули стандартної прямозубої шестерні
     const pitchDiameter = module * teeth;
     const outsideDiameter = module * (teeth + 2);
     const rootDiameter = module * (teeth - 2.5);
     const toothHeight = 2.25 * module;
 
-    // Вывод результатов
+    // Виведення результатів
     document.getElementById("pitch").textContent =
         pitchDiameter.toFixed(2);
 
@@ -338,29 +367,33 @@ function calculate() {
     document.getElementById("height").textContent =
         toothHeight.toFixed(2);
 
-    // Рекомендация по конструкции
+    // Порада щодо типу шестерні
     let recommendation = "";
 
     if (teeth < 12) {
+
         recommendation =
-            "Используйте прямозубую шестерню с осторожностью: " +
-            "малое количество зубьев может привести к подрезанию профиля. " +
-            "Рассмотрите увеличение числа зубьев или коррекцию профиля.";
-    }
-    else if (module <= 1) {
+            "Рекомендується прямозуба шестерня з корекцією профілю. " +
+            "Мала кількість зубців може спричинити підрізання профілю.";
+
+    } else if (module <= 1) {
+
         recommendation =
-            "Подойдёт компактная прямозубая шестерня. " +
-            "Используйте точную калибровку принтера и небольшой слой печати.";
-    }
-    else if (module <= 2.5) {
+            "Підійде компактна прямозуба шестерня. " +
+            "Рекомендується точне калібрування 3D-принтера.";
+
+    } else if (module <= 2.5) {
+
         recommendation =
-            "Хороший универсальный вариант — прямозубая шестерня. " +
-            "Она относительно проста в моделировании и печати.";
-    }
-    else {
+            "Хороший універсальний варіант — прямозуба шестерня. " +
+            "Вона проста у моделюванні та 3D-друці.";
+
+    } else {
+
         recommendation =
-            "Для крупных механизмов подойдёт прямозубая шестерня. " +
-            "Если важна плавность работы, рассмотрите косозубую конструкцию.";
+            "Для великих механізмів підійде прямозуба шестерня. " +
+            "Якщо важлива плавність роботи, розгляньте косозубу конструкцію.";
+
     }
 
     document.getElementById("recommendation").textContent =
@@ -368,6 +401,11 @@ function calculate() {
 
     results.style.display = "block";
 }
+
+// Обробка натискання кнопки
+document.getElementById("calculateButton")
+    .addEventListener("click", calculate);
+
 </script>
 
 </body>
